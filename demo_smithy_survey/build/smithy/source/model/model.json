@@ -1,0 +1,39 @@
+{
+    "smithy": "2.0",
+    "shapes": {
+        "survey#GetQuestion": {
+            "type": "operation",
+            "input": {
+                "target": "smithy.api#Unit"
+            },
+            "output": {
+                "target": "survey#GetQuestionOutput"
+            },
+            "traits": {
+                "smithy.api#readonly": {}
+            }
+        },
+        "survey#GetQuestionOutput": {
+            "type": "structure",
+            "members": {
+                "question": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                }
+            },
+            "traits": {
+                "smithy.api#output": {}
+            }
+        },
+        "survey#SurveyService": {
+            "type": "service",
+            "operations": [
+                {
+                    "target": "survey#GetQuestion"
+                }
+            ]
+        }
+    }
+}

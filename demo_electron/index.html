@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>PulseDaily Survey</title>
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@160..700&family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="content">
+        <h1>Do you have all the necessary tools you need to do your best work?</h1>
+        <form>
+            <div class="radio-btn-div">
+                <div class="radio-btn-label">
+                    <input type="radio" id="one" name="number" value="1">
+                    <label for="one">1</label><br>
+                </div>
+                <div class="radio-btn-label">
+                    <input type="radio" id="two" name="number" value="2">
+                    <label for="two">2</label><br>
+                </div>
+                <div class="radio-btn-label">
+                    <input type="radio" id="three" name="number" value="3">
+                    <label for="three">3</label><br>
+                </div>
+                <div class="radio-btn-label">
+                    <input type="radio" id="four" name="number" value="4">
+                    <label for="four">4</label><br>
+                </div>
+                <div class="radio-btn-label">
+                    <input type="radio" id="five" name="number" value="5">
+                    <label for="five">5</label><br>
+                </div>
+            </div>
+            <div class="details-label">
+                <label for="details">Anything to add?</label>
+                <input type="text" id="details" name="details">
+            </div>
+            <input type="submit" id="submit" value="Submit">
+        </form>
+    </div>
+    <div id="confirmation">Form submitted!</div>
+</body>
+</html>

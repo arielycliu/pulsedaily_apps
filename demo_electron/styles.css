@@ -1,0 +1,54 @@
+:root {
+    font-family: "Work Sans", sans-serif;
+    --bg-color: #f5f3ed;
+    --light-aqua: #AADBD2;
+    --dark-aqua: #99cfc5;
+    --dark-brown: #695D48;
+}
+body {
+    background-color: var(--bg-color);
+    padding: 3%;
+}
+h1 {
+    font-family: "Readex Pro", sans-serif;
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.radio-btn-div {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+.radio-btn-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.details-label {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-bottom: 15px;
+}
+.details-label > label {
+    padding-bottom: 5px;
+}
+.details-label > input {
+    width: 100%;
+}
+#submit {
+    font-family: "Readex Pro", sans-serif;
+    padding: 10px 15px;
+    border-radius: 15px;
+    border: 0px;
+    background-color: var(--light-aqua);
+}
+#submit:hover {
+    background-color: var(--dark-aqua);
+}
+#confirmation {
+    color: var(--bg-color);
+    display: block;
+    padding-top: 15px;
+}
