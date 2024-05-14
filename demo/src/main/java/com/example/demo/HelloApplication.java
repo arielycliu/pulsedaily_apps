@@ -27,6 +27,7 @@ import java.util.Date;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
+import java.util.Scanner;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -34,189 +35,241 @@ import org.json.JSONObject;
 public class HelloApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
-
+        // Import fonts
         URL fontUrl = getClass().getResource("/fonts/ReadexPro.ttf");
         Font.loadFont(fontUrl.toExternalForm(), 12);
         fontUrl = getClass().getResource("/fonts/WorkSans.ttf");
         Font.loadFont(fontUrl.toExternalForm(), 12);
         fontUrl = getClass().getResource("/fonts/WorkSans-Italic.ttf");
         Font.loadFont(fontUrl.toExternalForm(), 12);
+        fontUrl = getClass().getResource("/fonts/Courgette.ttf");
+        Font.loadFont(fontUrl.toExternalForm(), 12);
 
+
+        // Create grid
         GridPane grid = new GridPane();
         grid.setAlignment(Pos.CENTER);
         grid.setHgap(10); // gap between col
         grid.setVgap(10); // gap between rows
         grid.setPadding(new Insets(25, 25, 25, 25)); // top right bottom left
 
-        // QUOTES
-        URL url = new URL("https://zenquotes.io/api/quotes/");
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("GET");
-        connection.setDoOutput(true);
+        String quote_filename = "stored_quotes.txt";
+        File quote_file = new File(quote_filename);
+        if (!quote_file.exists() || quote_file.length() == 0) {  // we have used up all stored quotes, or this is the first api call
+            // Read from zenquotes api to pull quote of the day
+            URL quote_url = new URL("https://zenquotes.io/api/quotes/");
+            HttpURLConnection quote_connection = (HttpURLConnection) quote_url.openConnection(); // make api call
+            quote_connection.setRequestMethod("GET");
+            quote_connection.setDoOutput(true);
 
-        int responseCode = connection.getResponseCode();
-        System.out.println("Response Code: " + responseCode);
-        BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-        String inputLine;
-        StringBuffer response = new StringBuffer();
-        while ((inputLine = in.readLine()) != null) {
-            response.append(inputLine);
-        }
-        in.close();
-        String response_string = response.toString();
-        System.out.println(response_string);
-        JSONArray jsonArray = new JSONArray(response_string);
-        JSONObject jsonObject = jsonArray.getJSONObject(0);
-        System.out.println("Quote: " + jsonObject.getString("q"));
-
-
-        // QUESTIONS
-        url = new URL("https://qjg3v3vdqa.execute-api.us-east-1.amazonaws.com/default/LambdaReadFromPulse");
-        connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("GET");
-        // encrypt in binary or single sign on
-        connection.setRequestProperty("x-api-key", "rFvFLeKmxlaOTugyndyqq6chKSn7HkLQ1rSQPlax");
-        connection.setRequestProperty("Content-Type", "application/json");
-
-        connection.setDoOutput(true);
-
-        responseCode = connection.getResponseCode();
-//        System.out.println("Response Code: " + responseCode);
-        in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-
-        response = new StringBuffer();
-        while ((inputLine = in.readLine()) != null) {
-            response.append(inputLine);
-        }
-        in.close();
-        response_string = response.toString();
-        System.out.println("Response: " + response_string);
-
-        // save questions
-        String[] parts = response_string.substring(2, response_string.length() - 2).split(", ");
-        try (FileWriter writer = new FileWriter("api_questions.json")) {
-            for (int i = 0; i < parts.length; i++) {
-                for (int j = 0; j < parts[i].length(); j++) {
-                    if (j != ']' && j != '[') {
-//                        System.out.println(parts[i].charAt(j));
-                        writer.write(parts[i].charAt(j));
-                    }
-                }
-                writer.write("\n");
+            // Read api response
+            BufferedReader reader = new BufferedReader(new InputStreamReader(quote_connection.getInputStream()));
+            String inputLine;
+            StringBuffer quote_response = new StringBuffer();
+            while ((inputLine = reader.readLine()) != null) {
+                quote_response.append(inputLine);
             }
+            reader.close();
+            quote_connection.disconnect();
+            String quote_response_string = quote_response.toString();
+
+            // Convert to json
+            JSONArray jsonArray = new JSONArray(quote_response_string);
+
+            // Write quotes to file
+            try (FileWriter writer = new FileWriter(quote_filename)) {
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    writer.write(jsonArray.getJSONObject(i).getString("q") + "\n");
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        // Pull a quote from the file, then delete the quote from the queue
+        Scanner quoteScanner = new Scanner(quote_file);
+        String quoteString = quoteScanner.nextLine(); // read one line
+
+        // remove first line that we just read
+        FileWriter fileStream = new FileWriter(quote_filename);
+        BufferedWriter writer = new BufferedWriter(fileStream);
+        while(quoteScanner.hasNextLine()) {
+            String next = quoteScanner.nextLine();
+            if (next.equals("\n")) {
+                writer.newLine();
+            }
+            else {
+                writer.write(next);
+            }
+            writer.newLine();
+        }
+        writer.close();
+
+        // Add quote banner
+        Text quotetarget = new Text(quoteString);
+        quotetarget.setFill(Color.rgb(74, 63, 43));
+        quotetarget.setFont(Font.font("Courgette", FontWeight.BOLD, 12));
+        quotetarget.wrappingWidthProperty().bind(grid.widthProperty().subtract(50)); // set to size based on window
+        grid.add(quotetarget, 0, 0, 5, 1);
+
+        // Read question data
+        String question_filename = "stored_questions.txt";
+        File question_file = new File(question_filename);
+        if (!question_file.exists() || question_file.length() == 0) {  // if we have yet to pull questions or have used up the cache
+            // Read from questions RDS
+            URL question_url = new URL("https://qjg3v3vdqa.execute-api.us-east-1.amazonaws.com/default/LambdaReadFromPulse");
+            HttpURLConnection question_connection = (HttpURLConnection) question_url.openConnection();
+            question_connection.setRequestMethod("GET");
+            // TODO: encrypt api-key in binary or figure out single sign on
+            question_connection.setRequestProperty("x-api-key", "rFvFLeKmxlaOTugyndyqq6chKSn7HkLQ1rSQPlax");
+            question_connection.setRequestProperty("Content-Type", "application/json");
+            question_connection.setDoOutput(true);
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(question_connection.getInputStream()));
+            String cur_line;
+            StringBuffer question_response = new StringBuffer();
+            while ((cur_line = reader.readLine()) != null) {
+                question_response.append(cur_line);
+            }
+            reader.close();
+            question_connection.disconnect();
+            String question_response_string = question_response.toString();
+            JSONArray jsonArray = new JSONArray(question_response_string);
+
+            try (FileWriter fw = new FileWriter(question_filename)) {
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    JSONArray questionArray = jsonArray.getJSONArray(i);
+                    int questionID = questionArray.getInt(0);
+                    String question = questionArray.getString(1);
+                    fw.write( Integer.toString(questionID) + ":" + question + "\n");
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // Read the first question from the file
+        String questionString = "";
+        String readString;
+        int questionID = -1;
+        // Parse the questionID and the question string out
+        try (BufferedReader reader = new BufferedReader(new FileReader(question_filename))) {
+            readString = reader.readLine(); // Read the first line
+            questionID = Integer.parseInt(readString.substring(0, readString.indexOf(':'))); // get the questionID
+            questionString = readString.substring(readString.indexOf(':') + 1);
         } catch (IOException e) {
             e.printStackTrace();
         }
+        Scanner questionScanner = new Scanner(question_file);
+        questionScanner.nextLine();
+        // remove first line
+        fileStream = new FileWriter(question_filename);
+        writer = new BufferedWriter(fileStream);
+        while(questionScanner.hasNextLine()) {
+            String next = questionScanner.nextLine();
+            if (next.equals("\n")) {
+                writer.newLine();
+            }
+            else {
+                writer.write(next);
+            }
+            writer.newLine();
+        }
+        writer.close();
 
-        // Parse response
-        int questionId = Integer.parseInt(parts[0]);
-        String questionString = parts[1].substring(1, parts[1].length() - 1); // Remove quotes
-        String questionType = parts[2].substring(1, parts[2].length() - 1); // Remove quotes
-        System.out.println("Question 1: " + questionString);
-
-        connection.disconnect();
-
+        // Add question title to frontend
         Text scenetitle = new Text(questionString);
         scenetitle.setFont(Font.font("Readex Pro", FontWeight.NORMAL, 18));
         scenetitle.wrappingWidthProperty().bind(grid.widthProperty().subtract(50));
-        grid.add(scenetitle, 0, 0, 5, 1); // col index  |  row index  |  cols spanned  |  rows spanned
-        GridPane.setMargin(scenetitle, new Insets(0, 0, 5, 0)); // add margin under title
+        grid.add(scenetitle, 0, 1, 5, 1); // col index  |  row index  |  cols spanned  |  rows spanned
+        GridPane.setMargin(scenetitle, new Insets(0, 0, 5, 0)); // add margin
 
-//        Slider ratingSlider = new Slider(1, 5, 3); // Range from 1 to 5, default value 3
-//        ratingSlider.setShowTickMarks(false);
-//        ratingSlider.setShowTickLabels(true);
-//        ratingSlider.setMajorTickUnit(1);
-//        ratingSlider.setBlockIncrement(1);
-//        grid.add(ratingSlider, 0, 1, 5, 1);
-
+        // Add radio buttons for 1-5
         ToggleGroup group = new ToggleGroup(); // radio buttons 1-5
         for (int i = 1; i <= 5; i++) {
             RadioButton radioButton = new RadioButton();
             radioButton.setText(Integer.toString(i));
             radioButton.setToggleGroup(group);
-//            VBox box = new VBox();
-//            box.setAlignment(Pos.CENTER);
-//            box.getChildren().addAll(radioButton, new javafx.scene.control.Label(Integer.toString(i)));
-//            grid.add(box, i - 1, 1);
-            grid.add(radioButton, i-1, 1);
-            // space around
-            ColumnConstraints column = new ColumnConstraints();
+            grid.add(radioButton, i-1, 2, 1, 1);
+            ColumnConstraints column = new ColumnConstraints(); // set radio buttons to be spread out
             column.setPercentWidth(100 / 5);
             grid.getColumnConstraints().add(column);
         }
 
-        TextField userTextField = new TextField(); // textfield
-        userTextField.setFont(Font.font("Work Sans", FontWeight.NORMAL, 15));
-        userTextField.setText("Additional notes");
-        grid.add(userTextField, 0, 2, 5, 1);
-        GridPane.setMargin(userTextField, new Insets(0, 0, 5, 0)); // add margin under title
+        // Add heading for additional comments
+        Text detailsHeading = new Text("Additional comments:");
+        detailsHeading.setFont(Font.font("Readex Pro", FontWeight.NORMAL, 15));
+        detailsHeading.wrappingWidthProperty().bind(grid.widthProperty().subtract(50)); // set to size based on window
+        grid.add(detailsHeading, 0, 3, 5, 1);
+        GridPane.setMargin(detailsHeading, new Insets(10, 0, 0, 0)); // add margin
 
-        Button btn = new Button("Submit"); // submit button
+        // Add text field for additional comments
+        TextField userTextField = new TextField();
+        userTextField.setFont(Font.font("Work Sans", FontWeight.NORMAL, 15));
+        grid.add(userTextField, 0, 4, 5, 1);
+        GridPane.setMargin(userTextField, new Insets(0, 0, 5, 0)); // add margin
+
+        // Add submit button
+        Button btn = new Button("Submit");
         btn.setFont(Font.font("Work Sans", FontWeight.BOLD, 14));
         HBox hbBtn = new HBox(10);
         hbBtn.setAlignment(Pos.BOTTOM_LEFT);
         hbBtn.getChildren().add(btn);
-        grid.add(hbBtn, 0, 3, 5, 1);
+        grid.add(hbBtn, 0, 5, 5, 1);
 
-        final Text actiontarget = new Text(); // text to confirm submission
-        grid.add(actiontarget, 0, 4, 5, 1);
+        // Add confirm text
+        final Text actiontarget = new Text();
+        grid.add(actiontarget, 0, 6, 5, 1);
         actiontarget.setFont(Font.font("Work Sans", FontWeight.NORMAL, 10));
 
+        int finalQuestionID = questionID; // resolves error
         btn.setOnAction(new EventHandler<ActionEvent>() { // handle form submission
             @Override
             public void handle(ActionEvent e) {
                 actiontarget.setFill(Color.FIREBRICK);
-                actiontarget.setText("Form successfully submitted.");
 
-//              double ratingValue = ratingSlider.getValue();
                 RadioButton selectedRadioButton = (RadioButton) group.getSelectedToggle();
                 int ratingValue = 0; // Default value if no radio button is selected
                 if (selectedRadioButton == null) {
-                    actiontarget.setFill(Color.FIREBRICK);
-                    actiontarget.setText("Must indicate a rating.");
+                    actiontarget.setText("Must indicate a rating."); // error message
                     return;
                 } else {
-                    actiontarget.setFill(Color.FIREBRICK);
-                    actiontarget.setText("Thanks for your input.");
+                    actiontarget.setText("Thanks for your input."); // success message
                     ratingValue = Integer.parseInt(selectedRadioButton.getText());
                 }
                 String notes = userTextField.getText();
 
-                System.out.println("Rating: " + Integer.toString(ratingValue));
-                System.out.println("Additional Notes: " + notes);
-
-                // API starts here:
+                // Post the response data to rds
                 try {
+                    // Connect to rds api endpoint
                     URL url = new URL("https://jh7gbs9u87.execute-api.us-east-1.amazonaws.com/default/LambdaWriteToPulse");
                     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                     connection.setRequestMethod("POST");
                     connection.setRequestProperty("x-api-key", "fn4Wpaiw3n1qew4dpHNkJ6cPiKDHdrHU5ehKQi3k");
                     connection.setRequestProperty("Content-Type", "application/json");
-
                     connection.setDoOutput(true);
-                    String requestBody = "{\"ClientID\": 256, \"QuestionID\": " + Integer.toString(questionId) + ", \"ResponseNum\": " + Integer.toString(ratingValue) + ", \"Details\": \"" + notes +"\" }";
-                    System.out.println(requestBody);
+
+                    // Add request body
+                    String requestBody = "{\"ClientID\": 256, \"QuestionID\": " + Integer.toString(finalQuestionID) + ", \"ResponseNum\": " + Integer.toString(ratingValue) + ", \"Details\": \"" + notes +"\" }";
                     DataOutputStream outputStream = new DataOutputStream(connection.getOutputStream());
                     outputStream.writeBytes(requestBody);
                     outputStream.flush();
                     outputStream.close();
 
-        //          int responseCode = connection.getResponseCode();
-        //          System.out.println("Response Code: " + responseCode);
-                    BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                    String inputLine;
-                    StringBuffer response = new StringBuffer();
-                    while ((inputLine = in.readLine()) != null) {
-                        response.append(inputLine);
+                    // Read response
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    String line;
+                    StringBuffer api_response = new StringBuffer();
+                    while ((line = reader.readLine()) != null) {
+                        api_response.append(line);
                     }
-                    in.close();
-                    System.out.println("Response: " + response.toString());
-
+                    reader.close();
+                    System.out.println("API response: " + api_response.toString());
                     connection.disconnect();
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
 
+                // Hold the scene for a second then close
                 PauseTransition pause = new PauseTransition(Duration.seconds(1));
                 pause.setOnFinished(event -> {
                     stage.close(); // Close the stage (application window)
@@ -225,7 +278,8 @@ public class HelloApplication extends Application {
             }
         });
 
-        Scene scene = new Scene(grid, 300, 275);
+        // Launch scene
+        Scene scene = new Scene(grid, 350, 350);
         scene.getStylesheets().add(getClass().getResource("/form.css").toExternalForm()); // add css
         stage.setScene(scene);
         stage.show();
