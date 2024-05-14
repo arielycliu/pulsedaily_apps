@@ -19,9 +19,17 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-import java.io.IOException;
+import java.io.*;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Date;
 
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.List;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class HelloApplication extends Application {
     @Override
@@ -40,7 +48,75 @@ public class HelloApplication extends Application {
         grid.setVgap(10); // gap between rows
         grid.setPadding(new Insets(25, 25, 25, 25)); // top right bottom left
 
-        Text scenetitle = new Text("Do you have all the necessary tools you need to do your best work?");
+        // QUOTES
+        URL url = new URL("https://zenquotes.io/api/quotes/");
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setDoOutput(true);
+
+        int responseCode = connection.getResponseCode();
+        System.out.println("Response Code: " + responseCode);
+        BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        String inputLine;
+        StringBuffer response = new StringBuffer();
+        while ((inputLine = in.readLine()) != null) {
+            response.append(inputLine);
+        }
+        in.close();
+        String response_string = response.toString();
+        System.out.println(response_string);
+        JSONArray jsonArray = new JSONArray(response_string);
+        JSONObject jsonObject = jsonArray.getJSONObject(0);
+        System.out.println("Quote: " + jsonObject.getString("q"));
+
+
+        // QUESTIONS
+        url = new URL("https://qjg3v3vdqa.execute-api.us-east-1.amazonaws.com/default/LambdaReadFromPulse");
+        connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+        // encrypt in binary or single sign on
+        connection.setRequestProperty("x-api-key", "rFvFLeKmxlaOTugyndyqq6chKSn7HkLQ1rSQPlax");
+        connection.setRequestProperty("Content-Type", "application/json");
+
+        connection.setDoOutput(true);
+
+        responseCode = connection.getResponseCode();
+//        System.out.println("Response Code: " + responseCode);
+        in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+
+        response = new StringBuffer();
+        while ((inputLine = in.readLine()) != null) {
+            response.append(inputLine);
+        }
+        in.close();
+        response_string = response.toString();
+        System.out.println("Response: " + response_string);
+
+        // save questions
+        String[] parts = response_string.substring(2, response_string.length() - 2).split(", ");
+        try (FileWriter writer = new FileWriter("api_questions.json")) {
+            for (int i = 0; i < parts.length; i++) {
+                for (int j = 0; j < parts[i].length(); j++) {
+                    if (j != ']' && j != '[') {
+//                        System.out.println(parts[i].charAt(j));
+                        writer.write(parts[i].charAt(j));
+                    }
+                }
+                writer.write("\n");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // Parse response
+        int questionId = Integer.parseInt(parts[0]);
+        String questionString = parts[1].substring(1, parts[1].length() - 1); // Remove quotes
+        String questionType = parts[2].substring(1, parts[2].length() - 1); // Remove quotes
+        System.out.println("Question 1: " + questionString);
+
+        connection.disconnect();
+
+        Text scenetitle = new Text(questionString);
         scenetitle.setFont(Font.font("Readex Pro", FontWeight.NORMAL, 18));
         scenetitle.wrappingWidthProperty().bind(grid.widthProperty().subtract(50));
         grid.add(scenetitle, 0, 0, 5, 1); // col index  |  row index  |  cols spanned  |  rows spanned
@@ -92,7 +168,7 @@ public class HelloApplication extends Application {
                 actiontarget.setFill(Color.FIREBRICK);
                 actiontarget.setText("Form successfully submitted.");
 
-//                double ratingValue = ratingSlider.getValue();
+//              double ratingValue = ratingSlider.getValue();
                 RadioButton selectedRadioButton = (RadioButton) group.getSelectedToggle();
                 int ratingValue = 0; // Default value if no radio button is selected
                 if (selectedRadioButton == null) {
@@ -101,13 +177,46 @@ public class HelloApplication extends Application {
                     return;
                 } else {
                     actiontarget.setFill(Color.FIREBRICK);
-                    actiontarget.setText("Form successfully submitted.");
+                    actiontarget.setText("Thanks for your input.");
                     ratingValue = Integer.parseInt(selectedRadioButton.getText());
                 }
                 String notes = userTextField.getText();
 
                 System.out.println("Rating: " + Integer.toString(ratingValue));
                 System.out.println("Additional Notes: " + notes);
+
+                // API starts here:
+                try {
+                    URL url = new URL("https://jh7gbs9u87.execute-api.us-east-1.amazonaws.com/default/LambdaWriteToPulse");
+                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection.setRequestMethod("POST");
+                    connection.setRequestProperty("x-api-key", "fn4Wpaiw3n1qew4dpHNkJ6cPiKDHdrHU5ehKQi3k");
+                    connection.setRequestProperty("Content-Type", "application/json");
+
+                    connection.setDoOutput(true);
+                    String requestBody = "{\"ClientID\": 256, \"QuestionID\": " + Integer.toString(questionId) + ", \"ResponseNum\": " + Integer.toString(ratingValue) + ", \"Details\": \"" + notes +"\" }";
+                    System.out.println(requestBody);
+                    DataOutputStream outputStream = new DataOutputStream(connection.getOutputStream());
+                    outputStream.writeBytes(requestBody);
+                    outputStream.flush();
+                    outputStream.close();
+
+        //          int responseCode = connection.getResponseCode();
+        //          System.out.println("Response Code: " + responseCode);
+                    BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    String inputLine;
+                    StringBuffer response = new StringBuffer();
+                    while ((inputLine = in.readLine()) != null) {
+                        response.append(inputLine);
+                    }
+                    in.close();
+                    System.out.println("Response: " + response.toString());
+
+                    connection.disconnect();
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+
                 PauseTransition pause = new PauseTransition(Duration.seconds(1));
                 pause.setOnFinished(event -> {
                     stage.close(); // Close the stage (application window)
