@@ -32,6 +32,11 @@ import java.util.Scanner;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.util.Enumeration;
+import java.util.UUID;
+
 public class HelloApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
@@ -220,8 +225,29 @@ public class HelloApplication extends Application {
         final Text actiontarget = new Text();
         grid.add(actiontarget, 0, 6, 5, 1);
         actiontarget.setFont(Font.font("Work Sans", FontWeight.NORMAL, 10));
+        UUID uuid = UUID.randomUUID();
+        try {
+            // generate unique uuid using mac address of the network interface
+            Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
+            while (networkInterfaces.hasMoreElements()) {
+                NetworkInterface networkInterface = networkInterfaces.nextElement();
+                if (!networkInterface.isLoopback() && networkInterface.getHardwareAddress() != null) {  // stop at first one
+                    byte[] macAddress = networkInterface.getHardwareAddress();
+
+                    // call my function to generate uuid
+                    System.out.println(macAddress);
+                    uuid = generateUUIDFromMAC(macAddress);
+
+                    System.out.println("Generated Machine UUID: " + uuid.toString());
+                    break;
+                }
+            }
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
 
         int finalQuestionID = questionID; // resolves error
+        UUID finalUuid = uuid;
         btn.setOnAction(new EventHandler<ActionEvent>() { // handle form submission
             @Override
             public void handle(ActionEvent e) {
@@ -249,7 +275,8 @@ public class HelloApplication extends Application {
                     connection.setDoOutput(true);
 
                     // Add request body
-                    String requestBody = "{\"ClientID\": 256, \"QuestionID\": " + Integer.toString(finalQuestionID) + ", \"ResponseNum\": " + Integer.toString(ratingValue) + ", \"Details\": \"" + notes +"\" }";
+                    String requestBody = "{\"ClientID\": \"" + finalUuid.toString() + "\", \"QuestionID\": " + Integer.toString(finalQuestionID) + ", \"ResponseNum\": " + Integer.toString(ratingValue) + ", \"Details\": \"" + notes +"\" }";
+                    System.out.println(requestBody);
                     DataOutputStream outputStream = new DataOutputStream(connection.getOutputStream());
                     outputStream.writeBytes(requestBody);
                     outputStream.flush();
@@ -284,6 +311,23 @@ public class HelloApplication extends Application {
         stage.setScene(scene);
         stage.show();
     }
+
+    private static UUID generateUUIDFromMAC(byte[] mac) {
+        long msb = 0;
+        long lsb = 0;
+
+        for (int i = 0; i < 6; i++) {
+            msb = (msb << 8) | (mac[i] & 0xff);
+        }
+        // Fill the remaining 10 bytes with zeros to form a 16-byte array
+        msb &= 0xFFFFFFFFFFFF0000L; // Clear the last 16 bits for version and variant
+        msb |= (0x0000 << 48); // Set the version to 1 (time-based)
+
+        // Set the variant to 2 (IETF RFC 4122)
+        lsb = 0x8000000000000000L;
+        return new UUID(msb, lsb);
+    }
+    // 0000d250-ea46-0000-8000-000000000000
 
     public static void main(String[] args) {
         launch();
