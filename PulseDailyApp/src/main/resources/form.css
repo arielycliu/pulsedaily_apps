@@ -1,0 +1,20 @@
+.root {
+    -fx-background-color: #f5f3ed;
+    -fx-color-label-visible: #695D48;
+}
+.button {
+    -fx-background-color: #AADBD2;
+    -fx-padding: 10px 15px;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 10px;
+    -fx-border-width: 2px;
+    /*-fx-effect: dropshadow( three-pass-box , rgba(0,0,0,0.6) , 5, 0.0 , 0 , 1 );*/
+}
+.button:hover {
+    -fx-background-color: #99cfc5;
+}
+#actiontarget {
+    -fx-fill: FIREBRICK;
+    -fx-font-weight: bold;
+    /*-fx-effect: dropshadow( gaussian , rgba(255,255,255,0.5) , 0,0,0,1 );*/
+}

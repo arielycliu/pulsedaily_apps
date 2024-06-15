@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.example.pulsedaily;
 
 import javafx.animation.PauseTransition;
 import javafx.application.Application;
