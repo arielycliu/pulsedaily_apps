@@ -207,7 +207,7 @@ public class HelloApplication extends Application {
                         api_response.append(line);
                     }
                     reader.close();
-                    System.out.println("API response: " + api_response.toString());
+//                    System.out.println("API response: " + api_response.toString());
                     connection.disconnect();
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
