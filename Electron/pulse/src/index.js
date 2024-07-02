@@ -102,5 +102,6 @@ ipcMain.handle("callPostResponseApi", async (event, ratings, details) => {
         body: JSON.stringify(requestBody)
     });
     const data = await response.json();
+    console.log(data);
     return data;
 })

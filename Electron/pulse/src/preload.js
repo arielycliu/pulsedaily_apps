@@ -38,8 +38,12 @@ async function callGetQuestionApi() {
 async function callPostResponseApi(rating, details) {
     const result = await ipcRenderer.invoke("callPostResponseApi", rating, details); 
     if (result === "Success") {
+        // alert("Thank you for your input!");
         const confirmation = document.getElementById("confirmation");
-        confirmation.style.display = "block";
+        confirmation.style.color = "red";
+        setTimeout(() => {
+            window.close();
+        }, 1500);
     }
 }
 
