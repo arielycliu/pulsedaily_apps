@@ -7,7 +7,8 @@ let indexBridge = {
     getQuestionID: getQuestionID,
     updateQuestionID: updateQuestionID,
     callQuoteApi: callQuoteApi,
-    callGetQuestionApi: callGetQuestionApi
+    callGetQuestionApi: callGetQuestionApi,
+    callPostResponseApi: callPostResponseApi
 }
 async function getQuestionID() {
     const question_id = await ipcRenderer.invoke("getQuestionID");
@@ -32,6 +33,14 @@ async function callGetQuestionApi() {
     const question = document.getElementById("question");
     question.innerText = result.content;
     await updateQuestionID(question_id);
+}
+
+async function callPostResponseApi(rating, details) {
+    const result = await ipcRenderer.invoke("callPostResponseApi", rating, details); 
+    if (result === "Success") {
+        const confirmation = document.getElementById("confirmation");
+        confirmation.style.display = "block";
+    }
 }
 
 // expose indexBridge to render process

@@ -56,18 +56,18 @@ app.on('window-all-closed', () => {
 // call api in main since we have access to nodejs apis here
 ipcMain.handle("getQuestionID", () => {
     return global.question_id;
-})
+});
 
 ipcMain.handle("updateQuestionID", (event, newId) => {
     global.question_id = newId;
-})
+});
 
 ipcMain.handle("callQuoteApi", async () => {
     const response = await fetch('https://zenquotes.io/api/random');
     const data = await response.json();
     console.log(data[0]);
     return data[0];
-})
+});
 
 ipcMain.handle("callGetQuestionApi", async () => {
     const requestBody = {
@@ -83,5 +83,24 @@ ipcMain.handle("callGetQuestionApi", async () => {
     });
     const data = await response.json();
     console.log(data);
+    return data;
+});
+
+ipcMain.handle("callPostResponseApi", async (event, ratings, details) => {
+    const requestBody = {
+        email: "alice@techinnovators.com",
+        question_id: global.question_id,
+        rating: ratings,
+        details: details
+    };
+
+    const response = await fetch('https://xzrnwqkv35.execute-api.us-east-1.amazonaws.com/respond', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+    });
+    const data = await response.json();
     return data;
 })

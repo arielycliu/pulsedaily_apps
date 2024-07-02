@@ -13,7 +13,24 @@
     <p id="quote">Quote loading...</p>
     <p id="quote-author">Quote author loading...</p>
     <h2 id="question">Question loading...</h2>
-    <button onclick="callGetQuestionApi();">Call api</button>
+    <form id="feedback-form">
+        <div class="form-group">
+            <label for="rating">Rating:</label>
+            <div>
+                <label><input type="radio" name="rating" value="1"> 1</label>
+                <label><input type="radio" name="rating" value="2"> 2</label>
+                <label><input type="radio" name="rating" value="3"> 3</label>
+                <label><input type="radio" name="rating" value="4"> 4</label>
+                <label><input type="radio" name="rating" value="5"> 5</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="details">Any other details you'd like to add? (Optional)</label>
+            <textarea id="details" name="details"></textarea>
+        </div>
+        <button type="submit" onclick="callPostResponseApi();">Submit</button>
+    </form>
+    <p id="confirmation">Thanks for your input!</p>
 </body>
 
 </html>
