@@ -1,3 +1,8 @@
+function autoResize(textarea) {
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
+}
+
 function callQuoteApi() {
     window.indexBridge.callQuoteApi();
 }
@@ -24,5 +29,5 @@ window.onload = function() {
     callQuoteApi();
     callGetQuestionApi();
     const confirmation = document.getElementById("confirmation");
-    confirmation.style.color = "white";
+    confirmation.style.display = "none";
 };
