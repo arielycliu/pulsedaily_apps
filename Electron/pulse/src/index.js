@@ -1,7 +1,8 @@
 const { app, BrowserWindow } = require('electron');
 const path = require('node:path');
 const { ipcMain } = require('electron');
-const { net } = require('electron');
+
+global.question_id = 0;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -53,9 +54,34 @@ app.on('window-all-closed', () => {
 // code. You can also put them in separate files and import them here.
 
 // call api in main since we have access to nodejs apis here
+ipcMain.handle("getQuestionID", () => {
+    return global.question_id;
+})
+
+ipcMain.handle("updateQuestionID", (event, newId) => {
+    global.question_id = newId;
+})
+
 ipcMain.handle("callQuoteApi", async () => {
     const response = await fetch('https://zenquotes.io/api/random');
     const data = await response.json();
     console.log(data[0]);
     return data[0];
+})
+
+ipcMain.handle("callGetQuestionApi", async () => {
+    const requestBody = {
+        email: "alice@techinnovators.com" 
+    };
+
+    const response = await fetch('https://xzrnwqkv35.execute-api.us-east-1.amazonaws.com/questions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+    });
+    const data = await response.json();
+    console.log(data);
+    return data;
 })
