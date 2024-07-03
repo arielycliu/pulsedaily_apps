@@ -20,9 +20,15 @@ label {
     margin-bottom: 0.5rem;
 }
 
+input,
 textarea {
     border-radius: 0.5rem;
     padding: 0.5rem;
+}
+input {
+    border: 0.5px solid black;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    font-size: 1rem;
 }
 
 .main-content,
@@ -93,6 +99,7 @@ textarea {
     border-radius: 20px;
     border: 0px solid black;
     width: fit-content;
+    margin-bottom: 1rem;
 }
 #submitBtn:hover {
     cursor: pointer;
@@ -103,4 +110,9 @@ textarea {
     font-style: italic;
     margin-top: 0px;
     margin-bottom: 0.4rem;
+}
+
+/* Attributes unique to popup */
+#message {
+    padding-top: 1rem;
 }
