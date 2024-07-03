@@ -56,7 +56,7 @@ const createPopup = () => {
 app.whenReady().then(async () => {
     const { default: Store } = await import('electron-store');
     const store = new Store();
-    // store.set('firstRun', false);
+    store.set('firstRun', false);
     if (!store.get("firstRun")) {
         createPopup();
     } else {
@@ -102,13 +102,19 @@ ipcMain.handle("registerEmployee", async (event, email) => {
     const data = await response.json();
 
     if (data.status === 404) {
-        return 404
+        return 404;
     }
-    else {
+    else if (data.status === 409) {
+        return 409;
+    }
+    else if (data.status === 200) {
         // Update firstRun in store
         const { default: Store } = await import('electron-store');
         const store = new Store();
         store.set('firstRun', false);
+        body = JSON.parse(data.body);
+        emp_hash = body.emp_hash;
+        store.set('auth-key', emp_hash);
         return 200
     }
 });
@@ -129,8 +135,10 @@ ipcMain.handle("callQuoteApi", async () => {
 });
 
 ipcMain.handle("callGetQuestionApi", async () => {
+    const { default: Store } = await import('electron-store');
+    const store = new Store();
     const requestBody = {
-        emp_hash: config['auth-key']
+        emp_hash: store.get('auth-key')
     };
 
     const response = await fetch('https://xzrnwqkv35.execute-api.us-east-1.amazonaws.com/questions', {
@@ -145,8 +153,10 @@ ipcMain.handle("callGetQuestionApi", async () => {
 });
 
 ipcMain.handle("callPostResponseApi", async (event, ratings, details) => {
+    const { default: Store } = await import('electron-store');
+    const store = new Store();
     const requestBody = {
-        emp_hash: config['auth-key'],
+        emp_hash: store.get('auth-key'),
         question_id: global.question_id,
         rating: ratings,
         details: details
