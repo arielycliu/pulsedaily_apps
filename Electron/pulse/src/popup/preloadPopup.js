@@ -1,4 +1,4 @@
-const { contextBridge, ipcMain, ipcRenderer } = require('electron')
+const { contextBridge, ipcRenderer } = require('electron')
 
 // methods that will be exposed to renderer (frontend) process
 let indexBridge = {

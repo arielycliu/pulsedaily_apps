@@ -35,18 +35,16 @@ const createWindow = () => {
 
 const createPopup = () => {
     const emailPopup = new BrowserWindow({
-        // parent: mainWindow,
         width: 400,
         height: 500,
         modal: true,
         show: false,
         webPreferences: {
-            preload: path.join(__dirname, 'preloadPopup.js')
+            preload: path.join(__dirname, 'popup/preloadPopup.js')
         }
     });
-    // emailPopup.webContents.openDevTools();
     let modal = emailPopup;
-    modal.loadFile("src/popup.html");
+    modal.loadFile("src/popup/popup.html");
     modal.once('ready-to-show', () => {
         modal.show();
     });
