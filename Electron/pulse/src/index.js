@@ -56,7 +56,7 @@ const createPopup = () => {
 app.whenReady().then(async () => {
     const { default: Store } = await import('electron-store');
     const store = new Store();
-    store.set('firstRun', false);
+    // store.set('firstRun', false);
     if (!store.get("firstRun")) {
         createPopup();
     } else {
