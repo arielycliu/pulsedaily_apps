@@ -4,19 +4,9 @@ const { contextBridge, ipcMain, ipcRenderer } = require('electron')
 
 // methods that will be exposed to renderer (frontend) process
 let indexBridge = {
-    getQuestionID: getQuestionID,
-    updateQuestionID: updateQuestionID,
     callQuoteApi: callQuoteApi,
     callGetQuestionApi: callGetQuestionApi,
     callPostResponseApi: callPostResponseApi
-}
-async function getQuestionID() {
-    const question_id = await ipcRenderer.invoke("getQuestionID");
-    return question_id;
-}
-
-async function updateQuestionID(newId) {
-    await ipcRenderer.invoke("updateQuestionID", newId);
 }
 
 async function callQuoteApi() {

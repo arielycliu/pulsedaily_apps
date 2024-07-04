@@ -10,6 +10,7 @@ const configData = fs.readFileSync(configPath, 'utf-8');
 const config = JSON.parse(configData);
 
 global.question_id = 0;
+global.content = "";
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -56,8 +57,9 @@ const createPopup = () => {
 app.whenReady().then(async () => {
     const { default: Store } = await import('electron-store');
     const store = new Store();
-    // store.set('firstRun', false);
-    if (!store.get("firstRun")) {
+    // console.log(store.path);
+    store.set('firstRun', true);                                       // COMMENT OUT
+    if (store.get("firstRun") != false) {
         createPopup();
     } else {
         createWindow();
@@ -85,7 +87,7 @@ app.on('window-all-closed', () => {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
 
-ipcMain.handle("startMain", () => {
+ipcMain.handle("startMain", async (event, response) => {
     createWindow();
 });
 
@@ -98,36 +100,21 @@ ipcMain.handle("registerEmployee", async (event, email) => {
         },
         body: JSON.stringify({ "email": email })
     });
-
     const data = await response.json();
-
-    if (data.status === 404) {
-        return 404;
-    }
-    else if (data.status === 409) {
-        return 409;
-    }
-    else if (data.status === 200) {
+    if (data.status === 200) {
         // Update firstRun in store
         const { default: Store } = await import('electron-store');
         const store = new Store();
         store.set('firstRun', false);
-        body = JSON.parse(data.body);
-        emp_hash = body.emp_hash;
+
+        // Save emp_hash in store
+        emp_hash = JSON.parse(data.emp_hash);
         store.set('auth-key', emp_hash);
-        return 200
     }
+    return data
 });
 
-// call api in main since we have access to nodejs apis here
-ipcMain.handle("getQuestionID", () => {
-    return global.question_id;
-});
-
-ipcMain.handle("updateQuestionID", (event, newId) => {
-    global.question_id = newId;
-});
-
+// call apis in main since we have access to nodejs apis here
 ipcMain.handle("callQuoteApi", async () => {
     const response = await fetch('https://zenquotes.io/api/random');
     const data = await response.json();
@@ -149,7 +136,11 @@ ipcMain.handle("callGetQuestionApi", async () => {
         body: JSON.stringify(requestBody)
     });
     const data = await response.json();
-    return data;
+    if (data.status === 200) {
+        body = JSON.parse(data.body)
+        global.question_id = body.question_id;
+        return body;
+    }
 });
 
 ipcMain.handle("callPostResponseApi", async (event, ratings, details) => {
