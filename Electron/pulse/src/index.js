@@ -5,10 +5,6 @@ const { ipcMain } = require('electron');
 const fs = require('fs');
 const startAppAtScheduledTime = require('./scheduler')
 
-const configPath = path.join(__dirname, 'key.json');
-const configData = fs.readFileSync(configPath, 'utf-8');
-const config = JSON.parse(configData);
-
 global.question_id = 0;
 global.content = "";
 
