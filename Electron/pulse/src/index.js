@@ -79,7 +79,7 @@ app.whenReady().then(async () => {
     const { default: Store } = await import('electron-store');
     const store = new Store();
     // console.log(store.path);
-    // store.set('firstRun', true);                                          // COMMENT OUT
+    store.set('firstRun', true);                                          // COMMENT OUT
     if (store.get("firstRun") != false) {
         createPopup();
     } else {
