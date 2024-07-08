@@ -11,12 +11,8 @@ module.exports = {
       name: '@electron-forge/maker-wix',
       config: {
         language: 1033,
-        manufacturer: 'Pulse Test'
+        manufacturer: 'PulseDaily'
       }
-    },
-    {
-      name: '@electron-forge/maker-zip',
-      platforms: ['darwin'],
     }
   ],
   plugins: [

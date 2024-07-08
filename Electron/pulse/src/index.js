@@ -2,11 +2,34 @@ const { app, BrowserWindow } = require('electron');
 const path = require('node:path');
 const { ipcMain } = require('electron');
 
+const schedule = require('node-schedule');
+const { exec } = require('child_process');
+
 const fs = require('fs');
 const startAppAtScheduledTime = require('./scheduler')
 
 global.question_id = 0;
-global.content = "";
+
+// Path to electron app after deployment
+const APP_DIR = 'C:/Program Files/PulseDaily';
+
+// Schedule job
+const job = schedule.scheduleJob('50 18 * * *', function(){
+    console.log("Starting PulseDaily");
+
+    exec(`start ${APP_DIR}`, (error, stdout, stderr) => {
+        if (error) {
+          console.error(`Error starting Electron app: ${error.message}`);
+          return;
+        }
+        if (stderr) {
+          console.error(`Error output: ${stderr}`);
+          return;
+        }
+        console.log(`Electron app started successfully: ${stdout}`);
+    });
+})
+
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -17,10 +40,11 @@ const createWindow = () => {
     // Create the browser window.
     const mainWindow = new BrowserWindow({
         width: 400,
-        height: 650,
+        height: 660,
         webPreferences: {
             preload: path.join(__dirname, 'preload.js')
         },
+        icon: path.join(__dirname, 'images', 'pulsedailyicon.ico')
     });
 
     // and load the index.html of the app.
@@ -38,7 +62,8 @@ const createPopup = () => {
         show: false,
         webPreferences: {
             preload: path.join(__dirname, 'popup/preloadPopup.js')
-        }
+        },
+        icon: path.join(__dirname, 'images', 'pulsedailyicon.ico')
     });
     let modal = emailPopup;
     modal.loadFile("src/popup/popup.html");
@@ -54,7 +79,7 @@ app.whenReady().then(async () => {
     const { default: Store } = await import('electron-store');
     const store = new Store();
     // console.log(store.path);
-    store.set('firstRun', true);                                       // COMMENT OUT
+    // store.set('firstRun', true);                                          // COMMENT OUT
     if (store.get("firstRun") != false) {
         createPopup();
     } else {
