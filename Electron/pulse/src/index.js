@@ -4,7 +4,6 @@ const { ipcMain } = require('electron');
 
 // libraries for cron job
 const schedule = require('node-schedule');
-const { exec } = require('child_process');
 
 // libraries for auto launch
 const AutoLaunch = require('auto-launch');
@@ -21,20 +20,6 @@ autoLauncher.isEnabled().then(function(isEnabled) {
 });
 
 global.question_id = 0;
-
-// Path to electron app after deployment
-const APP_DIR = 'C:/Program Files/PulseDaily';
-
-// Schedule job
-const job = schedule.scheduleJob('0 10 * * *', function(){
-    console.log("Reopening PulseDaily window");
-    if (mainWindow) {
-        mainWindow.show();
-    } else {
-        createWindow();
-    }
-})
-
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -58,6 +43,19 @@ const createWindow = () => {
     // Open the DevTools.
     // mainWindow.webContents.openDevTools();
 };
+
+// Path to electron app after deployment
+const APP_DIR = 'C:/Program Files/PulseDaily';
+
+// Schedule job
+const job = schedule.scheduleJob('0 10 * * *', function(){
+    console.log("Reopening PulseDaily window");
+    if (mainWindow) {
+        mainWindow.show();
+    } else {
+        createWindow();
+    }
+})
 
 const createPopup = () => {
     const emailPopup = new BrowserWindow({
