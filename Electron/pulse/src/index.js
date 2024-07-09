@@ -2,11 +2,23 @@ const { app, BrowserWindow } = require('electron');
 const path = require('node:path');
 const { ipcMain } = require('electron');
 
+// libraries for cron job
 const schedule = require('node-schedule');
 const { exec } = require('child_process');
 
-const fs = require('fs');
-const startAppAtScheduledTime = require('./scheduler')
+// libraries for auto launch
+const AutoLaunch = require('auto-launch');
+const autolauncher = new AutoLaunch({
+    name: "PulseDaily",
+    isHidden: true
+});
+// ensure that autoLaunch is enabled
+autoLauncher.isEnabled().then(function(isEnabled) {
+    if (isEnabled) return;
+    autoLauncher.enable();  // if not already enabled, enable it
+}).catch(function (err) {
+    throw err;
+});
 
 global.question_id = 0;
 
@@ -14,20 +26,13 @@ global.question_id = 0;
 const APP_DIR = 'C:/Program Files/PulseDaily';
 
 // Schedule job
-const job = schedule.scheduleJob('50 18 * * *', function(){
-    console.log("Starting PulseDaily");
-
-    exec(`start ${APP_DIR}`, (error, stdout, stderr) => {
-        if (error) {
-          console.error(`Error starting Electron app: ${error.message}`);
-          return;
-        }
-        if (stderr) {
-          console.error(`Error output: ${stderr}`);
-          return;
-        }
-        console.log(`Electron app started successfully: ${stdout}`);
-    });
+const job = schedule.scheduleJob('0 10 * * *', function(){
+    console.log("Reopening PulseDaily window");
+    if (mainWindow) {
+        mainWindow.show();
+    } else {
+        createWindow();
+    }
 })
 
 
@@ -85,7 +90,6 @@ app.whenReady().then(async () => {
     } else {
         createWindow();
     }
-    startAppAtScheduledTime();
 
     // On OS X it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
