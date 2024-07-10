@@ -26,3 +26,4 @@ replay_pid*
 /demo/.mvn
 /PulseDailyAppBackend
 /Electron/pulse/dist
+/Electron2/pulsedaily/dist
