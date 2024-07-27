@@ -41,17 +41,18 @@ def return_response(cursor, question_id):
         cursor.execute(get_question, (question_id,))
         result = cursor.fetchone()
         if not result:
-            raise ValueError("Question not found for question_id: %s" % question_id)
+            return {
+                "status": 500,
+                "body": "Question not found for question_id: %s" % question_id
+            }
         content = result["content"]
 
         return {
             "status": 200,
-            "body": json.dumps(
-                {
-                    "question_id": question_id,
-                    "content": content
-                }
-            )
+            "body": {
+                "question_id": question_id,
+                "content": content
+            }
         }
     except ValueError as e:
         logger.error("ERROR: %s", e)
@@ -136,11 +137,7 @@ def lambda_handler(event, context):
     except ValueError as e:
         logger.error("ERROR: %s", e)
         return {"status": 400, "body": str(e)}
-    except pymysql.MySQLError as e:
-        logger.error("ERROR: MySQL error occurred.")
-        logger.error(e)
-        return {"status": 500, "body": "Internal server error"}
     except Exception as e:
         logger.error("ERROR: An unexpected error occurred.")
         logger.error(e)
-        return {"status": 500, "body": "Internal server error"}
+        return {"status": 500, "body": str(e)}
