@@ -58,7 +58,7 @@ def lambda_handler(event, context):
             if not result:
                 return {
                     "status": 404,
-                    "body": json.dumps(f"Employee not found: {emp_hash}")
+                    "body": "Employee not found in database."
                 }
             emp_id = result["emp_id"]  # used in response table
 
@@ -71,17 +71,13 @@ def lambda_handler(event, context):
         logger.info("Successfully added record to Responses table.")
         
         return {
-            "statusCode": 200,
-            "body": json.dumps("Success")
+            "status": 200,
+            "body": "Success"
         }
     except ValueError as e:
         logger.error("ERROR: %s", e)
         return {"statusCode": 400, "body": str(e)}
-    except pymysql.MySQLError as e:
-        logger.error("ERROR: MySQL error occurred.")
-        logger.error(e)
-        return {"statusCode": 500, "body": "Internal server error"}
     except Exception as e:
         logger.error("ERROR: An unexpected error occurred.")
         logger.error(e)
-        return {"statusCode": 500, "body": "Internal server error"}
+        return {"statusCode": 500, "body": str(e)}
