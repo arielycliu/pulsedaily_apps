@@ -76,8 +76,8 @@ def lambda_handler(event, context):
         }
     except ValueError as e:
         logger.error("ERROR: %s", e)
-        return {"statusCode": 400, "body": str(e)}
+        return {"status": 400, "body": str(e)}
     except Exception as e:
         logger.error("ERROR: An unexpected error occurred.")
         logger.error(e)
-        return {"statusCode": 500, "body": str(e)}
+        return {"status": 500, "body": str(e)}
