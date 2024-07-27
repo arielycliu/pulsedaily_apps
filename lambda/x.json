@@ -1,0 +1,41 @@
+{
+  "version": "2.0",
+  "routeKey": "GET /data/question/{id}",
+  "rawPath": "/data/question/1",
+  "rawQueryString": "",
+  "headers": {
+      "accept": "*/*",
+      "accept-encoding": "gzip, deflate, br",
+      "cache-control": "no-cache",
+      "content-length": "0",
+      "host": "xzrnwqkv35.execute-api.us-east-1.amazonaws.com",
+      "postman-token": "84cd3ca3-4a6c-484b-8c45-af5c8fa4d95e",
+      "user-agent": "PostmanRuntime/7.39.0",
+      "x-amzn-trace-id": "Root=1-667b4aaf-7588f08245d565365930781e",
+      "x-forwarded-for": "174.92.118.10",
+      "x-forwarded-port": "443",
+      "x-forwarded-proto": "https"
+  },
+  "requestContext": {
+      "accountId": "205812652601",
+      "apiId": "xzrnwqkv35",
+      "domainName": "xzrnwqkv35.execute-api.us-east-1.amazonaws.com",
+      "domainPrefix": "xzrnwqkv35",
+      "http": {
+          "method": "GET",
+          "path": "/data/question/1",
+          "protocol": "HTTP/1.1",
+          "sourceIp": "174.92.118.10",
+          "userAgent": "PostmanRuntime/7.39.0"
+      },
+      "requestId": "Z8ibggUiIAMEMHg=",
+      "routeKey": "GET /data/question/{id}",
+      "stage": "$default",
+      "time": "25/Jun/2024:22:54:39 +0000",
+      "timeEpoch": 1719356079730
+  },
+  "pathParameters": {
+      "id": "1"
+  },
+  "isBase64Encoded": false
+}
