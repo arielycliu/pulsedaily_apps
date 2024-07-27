@@ -1,6 +1,6 @@
 from package import pymysql
 from package.pymysql.cursors import DictCursor
-import logging
+import logging 
 import json
 import sys
 import os
@@ -34,8 +34,8 @@ except KeyError as e:
     logger.error("ERROR: Environment variable %s not set", e)
     sys.exit(1)
 
-# Create the database connection outside of the handler to allow connections to be reused by subsequent function invocations.
-try:
+
+def return_data(commands):
     connection = pymysql.connect(
         host=rds_proxy_host, 
         user=user_name, 
@@ -45,12 +45,6 @@ try:
         cursorclass=DictCursor
     )
     logger.info("SUCCESS: Connection to RDS for MySQL instance succeeded")
-except pymysql.MySQLError as e:
-    logger.error("ERROR: Could not connect to MySQL instance.")
-    logger.error(e)
-    sys.exit(1)
-
-def return_data(commands):
 
     with connection.cursor() as cursor:
         # Get data
@@ -62,96 +56,104 @@ def return_data(commands):
             result[key] = data
             
         return {
-            "statusCode": 200, "body": json.dumps(result)
+            "status": 200, "body": json.dumps(result)
         }
 
 def lambda_handler(event, context):
-    # /data/question/{date}/{org_id}
-    # date specific data
-    if event.get('routeKey', '') == "GET /data/question/{date}/{org_id}":
-        date = event.get('pathParameters', {}).get('date')
-        if date is None:
-            raise ValueError("Missing date in request path")
-        
-        org_id = event.get('pathParameters', {}).get('org_id')
-        if org_id is None:
-            raise ValueError("Missing org_id in request path")
-        
-        commands = {
-            "question": {
-                "sql_command": get_question_via_date,
-                "arguments": (org_id, date)
-            },
-            "ratings": {
-                "sql_command": question_ratings,
-                "arguments": (org_id, date)
-            },
-            "rating_average": {
-                "sql_command": question_average_rating,
-                "arguments": (org_id, date)
-            },
-            "response_rate": {
-                "sql_command": question_response_rate,
-                "arguments": (org_id, org_id, date)
+
+    try:
+
+        # /data/question/{date}/{org_id}
+        # date specific data
+        if event.get('routeKey', '') == "GET /data/question/{date}/{org_id}":
+            date = event.get('pathParameters', {}).get('date')
+            if date is None:
+                raise ValueError("Missing date in request path")
+            
+            org_id = event.get('pathParameters', {}).get('org_id')
+            if org_id is None:
+                raise ValueError("Missing org_id in request path")
+            
+            commands = {
+                "question": {
+                    "sql_command": get_question_via_date,
+                    "arguments": (org_id, date)
+                },
+                "ratings": {
+                    "sql_command": question_ratings,
+                    "arguments": (org_id, date)
+                },
+                "rating_average": {
+                    "sql_command": question_average_rating,
+                    "arguments": (org_id, date)
+                },
+                "response_rate": {
+                    "sql_command": question_response_rate,
+                    "arguments": (org_id, org_id, date)
+                }
+                # "details": {
+                #     "sql_command": question_details,
+                #     "arguments": (org_id, date)
+                # },
             }
-            # "details": {
-            #     "sql_command": question_details,
-            #     "arguments": (org_id, date)
-            # },
-        }
-        return return_data(commands)
+            return return_data(commands)
 
 
-    # /data/questions/{question_id}/{org_id}
-    # question specific data
-    if event.get('routeKey', '') == "GET /data/questions/{question_id}/{org_id}":
-        question_id = event.get('pathParameters', {}).get('question_id')
-        if question_id is None:
-            raise ValueError("Missing question_id in request path")
-        
-        org_id = event.get('pathParameters', {}).get('org_id')
-        if org_id is None:
-            raise ValueError("Missing org_id in request path")
-        
-        commands = {
-            "question": {
-                "sql_command": get_question_via_id,
-                "arguments": (org_id, question_id)
-            },
-            "ratings": {
-                "sql_command": questions_ratings,
-                "arguments": (org_id, question_id)
-            },
-            "rating_averages": {
-                "sql_command": questions_averages,
-                "arguments": (org_id, question_id)
-            },
-            "rating_average": {
-                "sql_command": questions_avg_overall,
-                "arguments": (org_id, question_id)
-            },
-            "response_rate": {
-                "sql_command": questions_response_rate_overall,
-                "arguments": (org_id, org_id, question_id)
-            },
-        }
-        return return_data(commands)
-
-    # /data/response_rate/{org_id}
-    # response rate data
-    if event.get('routeKey', '') == "GET /data/response_rate/{org_id}":
-        org_id = event.get('pathParameters', {}).get('org_id')
-        if org_id is None:
-            raise ValueError("Missing org_id in request path")
-        
-        commands = {
-            "response_rate": {
-                "sql_command": response_rate_overall,
-                "arguments": (org_id, org_id)
-            },
-            "response_rate_per_day": {
-                "sql_command": response_rate_overtime,
-                "arguments": (org_id, org_id)
+        # /data/questions/{question_id}/{org_id}
+        # question specific data
+        if event.get('routeKey', '') == "GET /data/questions/{question_id}/{org_id}":
+            question_id = event.get('pathParameters', {}).get('question_id')
+            if question_id is None:
+                raise ValueError("Missing question_id in request path")
+            
+            org_id = event.get('pathParameters', {}).get('org_id')
+            if org_id is None:
+                raise ValueError("Missing org_id in request path")
+            
+            commands = {
+                "question": {
+                    "sql_command": get_question_via_id,
+                    "arguments": (org_id, question_id)
+                },
+                "ratings": {
+                    "sql_command": questions_ratings,
+                    "arguments": (org_id, question_id)
+                },
+                "rating_averages": {
+                    "sql_command": questions_averages,
+                    "arguments": (org_id, question_id)
+                },
+                "rating_average": {
+                    "sql_command": questions_avg_overall,
+                    "arguments": (org_id, question_id)
+                },
+                "response_rate": {
+                    "sql_command": questions_response_rate_overall,
+                    "arguments": (org_id, org_id, question_id)
+                },
             }
+            return return_data(commands)
+
+        # /data/response_rate/{org_id}
+        # response rate data
+        if event.get('routeKey', '') == "GET /data/response_rate/{org_id}":
+            org_id = event.get('pathParameters', {}).get('org_id')
+            if org_id is None:
+                raise ValueError("Missing org_id in request path")
+            
+            commands = {
+                "response_rate": {
+                    "sql_command": response_rate_overall,
+                    "arguments": (org_id, org_id)
+                },
+                "response_rate_per_day": {
+                    "sql_command": response_rate_overtime,
+                    "arguments": (org_id, org_id)
+                }
+            }
+            return return_data(commands)
+    except Exception as e:
+        return {
+            "status": 500,
+            "body": str(e)
         }
-        return return_data(commands)

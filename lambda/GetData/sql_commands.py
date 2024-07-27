@@ -24,7 +24,7 @@ LEFT JOIN `PulseDaily`.`Questions` AS questions
 WHERE employees.org_id = %s
     AND responses.question_id = %s
 LIMIT 1;
-"""
+""" 
 
 # /data/question/{date}/{org_id}
 # Pie chart format breakdown for ratings
