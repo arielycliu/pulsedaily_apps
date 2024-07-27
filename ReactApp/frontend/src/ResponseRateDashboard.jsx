@@ -11,11 +11,12 @@ export default function ResponseRateDashboard({ org_id, setOrgID }) {
 	});
 
     const fetchData = async () => {
-		const response = await fetch(
+		const r = await fetch(
 			`https://xzrnwqkv35.execute-api.us-east-1.amazonaws.com/data/response_rate/${org_id}`
 		);
-		const response_data = await response.json();
-		setResponse(response_data);
+		const response_json = await r.json();
+		const response = JSON.parse(response_json.body)
+		setResponse(response);
 	};
     
     return (

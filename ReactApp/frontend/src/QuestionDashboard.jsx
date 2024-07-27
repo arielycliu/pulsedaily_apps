@@ -12,11 +12,12 @@ export default function QuestionDashboard({ question_id, setQuestionID, org_id, 
 	}, [question_id]);
 
     const fetchData = async () => {
-		const response = await fetch(
+		const r = await fetch(
 			`https://xzrnwqkv35.execute-api.us-east-1.amazonaws.com/data/questions/${question_id}/${org_id}`
 		);
-		const response_data = await response.json();
-		setResponse(response_data);
+		const response_json = await r.json();
+		const response = JSON.parse(response_json.body);
+		setResponse(response);
 	};
 
 	const handlePreviousQuestion = async () => {
@@ -39,7 +40,7 @@ export default function QuestionDashboard({ question_id, setQuestionID, org_id, 
 					</div>
 				</div>
 				{(!response || !response["ratings"] || response["ratings"].length === 0) && (<h2>No data for this question</h2>)}
-				{response["question"] && (<h2>Question: {response["question"][0]["content"]}</h2>)}
+				{(response["question"] && response["question"][0]) && (<h2>Question: {response["question"][0]["content"]}</h2>)}
 				<div style={{ display: 'flex', alignItems: 'left', justifyContent: 'center', gap: '10%' }}>
 					{
 						response["ratings"] && 

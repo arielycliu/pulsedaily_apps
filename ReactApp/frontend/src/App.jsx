@@ -6,7 +6,7 @@ import ResponseRateDashboard from "./ResponseRateDashboard";
 
 function App() {
 	const [question_id, setQuestionID] = useState(5);
-	const [org_id, setOrgID] = useState(1);
+	const [org_id, setOrgID] = useState(2);
 	const [date, setDate] = useState(new Date());
 
 	return (

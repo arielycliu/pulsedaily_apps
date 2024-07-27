@@ -39,11 +39,12 @@ export default function DateDashboard({ date, setDate, org_id, setOrgID }) {
 
     const fetchData = async () => {
 		const date_str = date.toISOString().slice(0, 10)
-		const response = await fetch(
+		const r = await fetch(
 			`https://xzrnwqkv35.execute-api.us-east-1.amazonaws.com/data/question/${date_str}/${org_id}`
 		);
-		const response_data = await response.json();
-		setResponse(response_data);
+		const response_json = await r.json();
+		const response = JSON.parse(response_json.body);
+		setResponse(response);
 	};
 
 	const handlePreviousDay = async () => {
@@ -68,7 +69,7 @@ export default function DateDashboard({ date, setDate, org_id, setOrgID }) {
 					</div>
 				</div>
 				{(!response || !response["ratings"] || response["ratings"].length === 0) && (<h2>No data for this day</h2>)}
-				{response["question"] && (<h2>Question: {response["question"][0]["content"]}</h2>)}
+				{(response["question"] && response["question"][0]) && (<h2>Question: {response["question"][0]["content"]}</h2>)}
 				<div style={{ display: 'flex', alignItems: 'left', justifyContent: 'center', gap: '10%' }}>
 					{
 						response["ratings"] && 
