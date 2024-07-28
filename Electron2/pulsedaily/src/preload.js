@@ -18,7 +18,8 @@ async function callQuoteApi() {
 }
 
 async function callGetQuestionApi() {
-    const result = await ipcRenderer.invoke("callGetQuestionApi"); 
+    const response = await ipcRenderer.invoke("callGetQuestionApi"); 
+    const result = response.body;
     const question_id = result.question_id;
     const question = document.getElementById("question");
     question.innerText = result.content;
@@ -26,8 +27,8 @@ async function callGetQuestionApi() {
 }
 
 async function callPostResponseApi(rating, details) {
-    const result = await ipcRenderer.invoke("callPostResponseApi", rating, details); 
-    if (result === "Success") {
+    const response = await ipcRenderer.invoke("callPostResponseApi", rating, details); 
+    if (response.body === "Success") {
         const confirmation = document.getElementById("confirmation");
         confirmation.style.display = "inline";
         setTimeout(() => {

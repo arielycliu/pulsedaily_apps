@@ -76,7 +76,7 @@ const job = schedule.scheduleJob('50 18 * * *', function () {
 app.whenReady().then(async () => {
     const { default: Store } = await import('electron-store');
     const store = new Store();
-    // store.set('firstRun', true);                                          // COMMENT OUT
+    store.set('firstRun', true);                                          // COMMENT OUT
     if (store.get("firstRun") != false) {
         createPopup();
     } else {
@@ -118,6 +118,7 @@ ipcMain.handle("registerEmployee", async (event, email) => {
         body: JSON.stringify({ "email": email })
     });
     const data = await response.json();
+    console.log(data);
     if (data.status === 200) {
         // Update firstRun in store
         const { default: Store } = await import('electron-store');
@@ -125,7 +126,7 @@ ipcMain.handle("registerEmployee", async (event, email) => {
         store.set('firstRun', false);
 
         // Save emp_hash in store
-        emp_hash = JSON.parse(data.emp_hash);
+        emp_hash = data.body.emp_hash;
         store.set('auth-key', emp_hash);
     }
     return data
@@ -153,11 +154,13 @@ ipcMain.handle("callGetQuestionApi", async () => {
         body: JSON.stringify(requestBody)
     });
     const data = await response.json();
-    if (data.status === 200) {
-        body = JSON.parse(data.body)
+    console.log(data);
+    if (data.status === 200) { 
+        body = data.body;
         global.question_id = body.question_id;
-        return body;
+        // return body;
     }
+    return data;
 });
 
 ipcMain.handle("callPostResponseApi", async (event, ratings, details) => {
