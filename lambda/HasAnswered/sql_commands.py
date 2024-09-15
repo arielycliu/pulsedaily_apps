@@ -9,5 +9,5 @@ SELECT response_id
 FROM Responses
 WHERE emp_id = %s
   AND question_id = %s
-  AND timestamp >= NOW() - INTERVAL 1 DAY;
+  AND DATE(timestamp) = CURDATE();
 """
